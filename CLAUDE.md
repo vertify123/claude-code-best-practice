@@ -17,6 +17,48 @@ A demonstration of two distinct skill patterns via the **Command → Agent → S
 
 Two skill patterns: agent skills (preloaded via `skills:` field) vs skills (invoked via `Skill` tool). See `orchestration-workflow/orchestration-workflow.md` for the complete flow diagram.
 
+### Agent Teams Demo (`agent-teams/`)
+A self-contained sub-project demonstrating the same Command → Agent → Skill architecture for Dubai time. It has its own `.claude/` directory and runs independently via `cd agent-teams && claude`. Do NOT modify `agent-teams/.claude/` from the repo root — treat it as a separate project. Created by an agent team of three parallel subagents (Command Architect, Agent Engineer, Skill Designer).
+
+### Agents (`.claude/agents/`)
+- `weather-agent.md`: Fetches Dubai temperature (preloaded: `weather-fetcher`; model: sonnet; memory: project)
+- `time-agent.md`: Displays Pakistan Standard Time in PKT/UTC+5 (model: haiku; maxTurns: 3)
+- `presentation-curator.md`: Manages all presentation edits — **always delegate presentation work here** (preloaded: 3 presentation skills; model: sonnet). See `.claude/rules/presentation.md`.
+- `development-workflows-research-agent.md`: Researches Claude Code workflow repos on GitHub — fetches star counts, agent/skill/command counts, and uniqueness tags (model: sonnet; permissionMode: bypassPermissions)
+
+### Skills (`.claude/skills/`)
+- `weather-fetcher/`: Agent-preloaded — Open-Meteo temperature fetch instructions
+- `weather-svg-creator/`: SVG weather card creator (writes `orchestration-workflow/weather.svg`)
+- `time-skill/`: Displays current PKT time (user-invocable)
+- `agent-browser/`: Browser automation CLI — navigate, snapshot, click, fill, screenshot (allowed-tools: `Bash(agent-browser:*)`)
+- `presentation/vibe-to-agentic-framework/`: Framework narrative for presentation slides
+- `presentation/presentation-structure/`: Slide format, level system, section structure
+- `presentation/presentation-styling/`: CSS classes, syntax highlighting patterns
+
+### Commands (`.claude/commands/`)
+- `weather-orchestrator.md`: Orchestrates the weather workflow (C/F → agent → SVG)
+- `time-command.md`: Displays current PKT time
+- `workflows/development-workflows.md`: Updates DEVELOPMENT WORKFLOWS table in README via 2 parallel research agents
+- `workflows/best-practice/workflow-claude-subagents.md`: Tracks subagents doc drift
+- `workflows/best-practice/workflow-claude-commands.md`: Tracks commands doc drift
+- `workflows/best-practice/workflow-claude-settings.md`: Tracks settings doc drift
+- `workflows/best-practice/workflow-claude-skills.md`: Tracks skills doc drift
+- `workflows/best-practice/workflow-concepts.md`: Updates README CONCEPTS section
+
+### MCP Servers (`.mcp.json`)
+Three project-level MCP servers: `playwright` (browser automation), `context7` (library docs lookup), `deepwiki` (deep wiki search).
+
+### Hooks System
+Cross-platform sound notification system in `.claude/hooks/`:
+- `scripts/hooks.py`: Main handler for all Claude Code hook events
+- `config/hooks-config.json`: Shared team configuration
+- `config/hooks-config.local.json`: Personal overrides (git-ignored)
+- `sounds/`: Audio files organized by hook event (generated via ElevenLabs TTS)
+
+All **27 hook events** are wired in `.claude/settings.json`: PreToolUse, PermissionRequest, PostToolUse, PostToolUseFailure, UserPromptSubmit, Notification, Stop, SubagentStart, SubagentStop, PreCompact, PostCompact, SessionStart, SessionEnd, Setup, TeammateIdle, TaskCreated, TaskCompleted, ConfigChange, WorktreeCreate, WorktreeRemove, InstructionsLoaded, Elicitation, ElicitationResult, StopFailure, CwdChanged, FileChanged, PermissionDenied.
+
+Special: git commits trigger `pretooluse-git-committing` sound. Hooks 15-17 (TeammateIdle, TaskCreated, TaskCompleted) require `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`.
+
 ### Skill Definition Structure
 Skills in `.claude/skills/<name>/SKILL.md` use YAML frontmatter:
 - `name`: Display name and `/slash-command` (defaults to directory name)
@@ -29,20 +71,6 @@ Skills in `.claude/skills/<name>/SKILL.md` use YAML frontmatter:
 - `context`: Set to `fork` to run in isolated subagent context
 - `agent`: Subagent type for `context: fork` (default: `general-purpose`)
 - `hooks`: Lifecycle hooks scoped to this skill
-
-### Presentation System
-See `.claude/rules/presentation.md` — all presentation work is delegated to the `presentation-curator` agent.
-
-### Hooks System
-Cross-platform sound notification system in `.claude/hooks/`:
-- `scripts/hooks.py`: Main handler for Claude Code hook events
-- `config/hooks-config.json`: Shared team configuration
-- `config/hooks-config.local.json`: Personal overrides (git-ignored)
-- `sounds/`: Audio files organized by hook event (generated via ElevenLabs TTS)
-
-Hook events configured in `.claude/settings.json`: PreToolUse, PostToolUse, UserPromptSubmit, Notification, Stop, SubagentStart, SubagentStop, PreCompact, SessionStart, SessionEnd, Setup, PermissionRequest, TeammateIdle, TaskCompleted, ConfigChange.
-
-Special handling: git commits trigger `pretooluse-git-committing` sound.
 
 ## Critical Patterns
 
@@ -79,6 +107,8 @@ Subagents in `.claude/agents/*.md` use YAML frontmatter:
 4. `.claude/settings.json`: Team-shared settings
 5. `~/.claude/settings.json`: Global personal defaults
 6. `hooks-config.local.json` overrides `hooks-config.json`
+
+Notable settings in this repo's `.claude/settings.json`: `outputStyle: "Explanatory"`, `plansDirectory: "./reports"`, `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: "80"` (auto-compact at 80% context).
 
 ### Disable Hooks
 Set `"disableAllHooks": true` in `.claude/settings.local.json`, or disable individual hooks in `hooks-config.json`.
@@ -123,3 +153,5 @@ See `.claude/rules/markdown-docs.md` for documentation standards. Key docs:
 - `best-practice/claude-subagents.md`: Subagent frontmatter, hooks, and repository agents
 - `best-practice/claude-commands.md`: Slash command patterns and built-in command reference
 - `orchestration-workflow/orchestration-workflow.md`: Weather system flow diagram
+- `reports/claude-agent-memory.md`: Agent memory scope patterns
+- `reports/claude-skills-for-larger-mono-repos.md`: Skills in monorepo subdirectories
