@@ -10,11 +10,13 @@ Setup:
 
 import json
 import os
+import re
 import sys
 import time
 import urllib.parse
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from pathlib import Path
 from typing import Any, Optional
 
 import requests
@@ -24,6 +26,9 @@ OAUTH_URL = "https://www.etsy.com/oauth/connect"
 TOKEN_URL = "https://api.etsy.com/v3/public/oauth/token"
 REDIRECT_URI = "http://localhost:3003/oauth/redirect"
 SCOPES = "listings_r listings_w transactions_r conversations_r conversations_w shops_r"
+
+# Path to the .env file (one level up from api/)
+_ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 
 
 def _env(key: str, required: bool = True) -> str:
@@ -56,18 +61,27 @@ class EtsyClient:
     def _get(self, path: str, params: Optional[dict] = None, auth: bool = False) -> Any:
         headers = self._auth_headers() if auth else {}
         resp = self.session.get(f"{BASE_URL}{path}", params=params, headers=headers)
+        if resp.status_code == 401 and auth and self.refresh_access_token():
+            headers = self._auth_headers()
+            resp = self.session.get(f"{BASE_URL}{path}", params=params, headers=headers)
         resp.raise_for_status()
         return resp.json()
 
     def _post(self, path: str, body: dict, auth: bool = True) -> Any:
         headers = {**self._auth_headers(), "Content-Type": "application/json"}
         resp = self.session.post(f"{BASE_URL}{path}", json=body, headers=headers)
+        if resp.status_code == 401 and auth and self.refresh_access_token():
+            headers = {**self._auth_headers(), "Content-Type": "application/json"}
+            resp = self.session.post(f"{BASE_URL}{path}", json=body, headers=headers)
         resp.raise_for_status()
         return resp.json()
 
     def _patch(self, path: str, body: dict, auth: bool = True) -> Any:
         headers = {**self._auth_headers(), "Content-Type": "application/json"}
         resp = self.session.patch(f"{BASE_URL}{path}", json=body, headers=headers)
+        if resp.status_code == 401 and auth and self.refresh_access_token():
+            headers = {**self._auth_headers(), "Content-Type": "application/json"}
+            resp = self.session.patch(f"{BASE_URL}{path}", json=body, headers=headers)
         resp.raise_for_status()
         return resp.json()
 
@@ -114,6 +128,54 @@ class EtsyClient:
         server.handle_request()
         return server.code, verifier
 
+    def refresh_access_token(self) -> bool:
+        """Exchange the refresh token for a new access+refresh token pair.
+
+        Automatically writes the new tokens back to .env so subsequent
+        process invocations don't need to re-authenticate.
+
+        Returns True on success, False if the refresh token is missing/invalid.
+        """
+        if not self.refresh_token:
+            print("[etsy_client] No refresh token — run --auth to authenticate.", file=sys.stderr)
+            return False
+
+        resp = requests.post(TOKEN_URL, data={
+            "grant_type": "refresh_token",
+            "client_id": self.api_key,
+            "refresh_token": self.refresh_token,
+        })
+        if resp.status_code != 200:
+            print(f"[etsy_client] Token refresh failed ({resp.status_code}): {resp.text[:120]}", file=sys.stderr)
+            return False
+
+        tokens = resp.json()
+        self.access_token = tokens["access_token"]
+        self.refresh_token = tokens.get("refresh_token", self.refresh_token)
+        self.session.headers.update({})  # force header re-read on next request
+
+        # Persist new tokens to .env so they survive process restarts
+        self._save_tokens_to_env(self.access_token, self.refresh_token)
+        print("[etsy_client] Access token refreshed and saved to .env", file=sys.stderr)
+        return True
+
+    def _save_tokens_to_env(self, access_token: str, refresh_token: str) -> None:
+        """Update ETSY_ACCESS_TOKEN and ETSY_REFRESH_TOKEN in-place inside .env."""
+        if not _ENV_FILE.exists():
+            return
+        text = _ENV_FILE.read_text()
+
+        def _upsert(key: str, value: str, src: str) -> str:
+            pattern = rf"^{key}=.*$"
+            replacement = f"{key}={value}"
+            if re.search(pattern, src, flags=re.MULTILINE):
+                return re.sub(pattern, replacement, src, flags=re.MULTILINE)
+            return src + f"\n{replacement}"
+
+        text = _upsert("ETSY_ACCESS_TOKEN", access_token, text)
+        text = _upsert("ETSY_REFRESH_TOKEN", refresh_token, text)
+        _ENV_FILE.write_text(text)
+
     def authenticate(self):
         """Full OAuth 2.0 PKCE flow. Prints tokens to stdout."""
         code, verifier = self._start_oauth_flow()
@@ -126,7 +188,10 @@ class EtsyClient:
         })
         resp.raise_for_status()
         tokens = resp.json()
-        print("\n[etsy_client] Auth successful! Add these to your .env:\n")
+        self.access_token = tokens["access_token"]
+        self.refresh_token = tokens["refresh_token"]
+        self._save_tokens_to_env(self.access_token, self.refresh_token)
+        print("\n[etsy_client] Auth successful! Tokens saved to .env\n")
         print(f"ETSY_ACCESS_TOKEN={tokens['access_token']}")
         print(f"ETSY_REFRESH_TOKEN={tokens['refresh_token']}")
 
@@ -227,6 +292,60 @@ class EtsyClient:
             f"/application/shops/{self.shop_id}/conversations/{conversation_id}/messages",
             {"message": message},
         )
+
+    # --- Images & Digital Files ---
+
+    def upload_listing_image(self, listing_id: int, image_path: str, rank: int = 1) -> dict:
+        """Upload a JPEG/PNG image to a listing.
+
+        Args:
+            listing_id: The numeric Etsy listing ID.
+            image_path: Local path to the image file (JPEG or PNG, max 10 MB).
+            rank: Display position (1 = primary thumbnail).
+        Returns:
+            API response dict with image details.
+        """
+        url = f"{BASE_URL}/application/shops/{self.shop_id}/listings/{listing_id}/images"
+        headers = self._auth_headers()
+        with open(image_path, "rb") as f:
+            files = {"image": (os.path.basename(image_path), f, "image/jpeg")}
+            data = {"rank": rank, "overwrite": "true"}
+            resp = self.session.post(url, headers=headers, files=files, data=data)
+        if resp.status_code == 401 and self.refresh_access_token():
+            headers = self._auth_headers()
+            with open(image_path, "rb") as f:
+                files = {"image": (os.path.basename(image_path), f, "image/jpeg")}
+                resp = self.session.post(url, headers=headers, files=files, data=data)
+        resp.raise_for_status()
+        return resp.json()
+
+    def upload_digital_file(self, listing_id: int, file_path: str, name: Optional[str] = None) -> dict:
+        """Attach a digital download file to a listing.
+
+        Etsy supports up to 5 digital files per listing (PDF, ZIP, etc., max 20 MB each).
+        The file is delivered to buyers automatically after purchase.
+
+        Args:
+            listing_id: The numeric Etsy listing ID.
+            file_path: Local path to the file to upload.
+            name: Optional display name shown to buyers (defaults to filename).
+        Returns:
+            API response dict with file details.
+        """
+        url = f"{BASE_URL}/application/shops/{self.shop_id}/listings/{listing_id}/files"
+        headers = self._auth_headers()
+        display_name = name or os.path.basename(file_path)
+        with open(file_path, "rb") as f:
+            files = {"file": (display_name, f, "application/octet-stream")}
+            data = {"name": display_name}
+            resp = self.session.post(url, headers=headers, files=files, data=data)
+        if resp.status_code == 401 and self.refresh_access_token():
+            headers = self._auth_headers()
+            with open(file_path, "rb") as f:
+                files = {"file": (display_name, f, "application/octet-stream")}
+                resp = self.session.post(url, headers=headers, files=files, data=data)
+        resp.raise_for_status()
+        return resp.json()
 
 
 if __name__ == "__main__":
