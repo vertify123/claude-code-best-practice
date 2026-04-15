@@ -104,6 +104,10 @@ def handle_conversations(
 
 if __name__ == "__main__":
     import argparse
+    try:
+        from dashboard.agent_logger import log_event as _log
+    except ImportError:
+        def _log(*_): pass  # noqa: E731
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--list", action="store_true")
@@ -116,18 +120,27 @@ if __name__ == "__main__":
     if args.list:
         from api.etsy_client import EtsyClient
         convs = list_conversations(EtsyClient())
+        _log("etsy-customer-service-agent", "info",
+             f"{len(convs)} unread conversation(s) found")
         print(f"[cs] {len(convs)} unread conversation(s)")
         for c in convs:
             msgs = c.get("messages", [])
             latest = msgs[-1].get("message_body", "")[:100] if msgs else ""
             print(f"  #{c.get('conversation_id')} — {latest!r}")
     elif args.send_all:
+        _log("etsy-customer-service-agent", "start", "Sending replies to all unread")
         results = handle_conversations("send", shop_context=args.shop_context)
+        _log("etsy-customer-service-agent", "complete",
+             f"Sent {len(results)} replies")
         print(json.dumps(results, indent=2))
     elif args.draft_all or args.id:
+        _log("etsy-customer-service-agent", "start",
+             f"Drafting replies ({'all' if args.draft_all else f'conv #{args.id}'})")
         results = handle_conversations(
             "draft", conversation_id=args.id, shop_context=args.shop_context
         )
+        _log("etsy-customer-service-agent", "complete",
+             f"Drafted {len(results)} replies")
         print(json.dumps(results, indent=2))
     else:
         parser.print_help()
