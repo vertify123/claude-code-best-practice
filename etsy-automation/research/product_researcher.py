@@ -251,14 +251,26 @@ def to_dict(opp: ProductOpportunity) -> dict:
 
 
 if __name__ == "__main__":
+    try:
+        from dashboard.agent_logger import log_event as _log
+    except ImportError:
+        def _log(*_): pass  # noqa: E731
+
     if "--top-niches" in sys.argv:
+        _log("etsy-research-agent", "start", "Scanning top niches")
         results = scan_top_niches()
         results.sort(key=lambda o: o.opportunity_score, reverse=True)
+        top = results[0].niche if results else "none"
+        _log("etsy-research-agent", "complete",
+             f"Top: {top} ({results[0].opportunity_score:.0f}pts)" if results else "no results")
         print(json.dumps([to_dict(r) for r in results], indent=2))
     elif len(sys.argv) >= 2:
         niche = sys.argv[1]
         ptype = sys.argv[2] if len(sys.argv) > 2 else "digital"
+        _log("etsy-research-agent", "start", f"Analysing niche: {niche} ({ptype})")
         result = fetch_and_analyse(niche, ptype)
+        _log("etsy-research-agent", "complete",
+             f"{niche}: score={result.opportunity_score}, margin={result.overall_margin_pct}%")
         print(json.dumps(to_dict(result), indent=2))
     else:
         print("Usage:")
