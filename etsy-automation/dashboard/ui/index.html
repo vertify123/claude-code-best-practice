@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Etsy AI Command Center</title>
+  <style>
+    :root {
+      --bg:           #070b14;
+      --surface:      #0d1626;
+      --surface-2:    #111e36;
+      --border:       #1a2d4a;
+      --border-hi:    #2a4a72;
+      --text:         #c8d8e8;
+      --text-dim:     #3a5070;
+      --cyan:         #00c8ff;
+      --green:        #00e878;
+      --yellow:       #ffcc00;
+      --amber:        #ff9900;
+      --red:          #ff4455;
+      --purple:       #bb88ff;
+      --mono:         'JetBrains Mono','Fira Code','SF Mono',Consolas,monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    /* ═══════════════════════════════════════════════════════ HEADER */
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 0 24px;
+      height: 52px;
+      background: linear-gradient(90deg, #060d1e 0%, #0b1a30 50%, #060d1e 100%);
+      border-bottom: 1px solid var(--border-hi);
+      position: sticky; top: 0; z-index: 100;
+    }
+
+    .nav-brand {
+      font-size: 18px; font-weight: 900; letter-spacing: -0.5px;
+      color: var(--cyan);
+      text-shadow: 0 0 24px rgba(0,200,255,.45);
+    }
+
+    .nav-sub {
+      font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .nav-sep { flex: 1; }
+
+    .live-pill {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(0,232,120,.08);
+      border: 1px solid rgba(0,232,120,.2);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 10px; letter-spacing: 2px; font-weight: 700;
+      color: var(--green); text-transform: uppercase;
+    }
+
+    .live-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: blink 2s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%,100% { opacity: 1; }
+      50%      { opacity: .35; }
+    }
+
+    .nav-clock {
+      font-size: 16px; font-weight: 700; letter-spacing: 2px;
+      color: var(--cyan); min-width: 82px; text-align: right;
+    }
+
+    /* ═══════════════════════════════════════════════════════ MAIN */
+    .main {
+      padding: 20px 24px 32px;
+      max-width: 1500px; margin: 0 auto;
+    }
+
+    /* Section heading */
+    .sh {
+      font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--text-dim);
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 12px;
+    }
+    .sh::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* ═══════════════════════════════════════════════════════ SETUP BANNER */
+    .setup-banner {
+      display: none;
+      align-items: flex-start; gap: 10px;
+      background: rgba(255,204,0,.07);
+      border: 1px solid rgba(255,204,0,.25);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      color: var(--yellow); font-size: 12px;
+    }
+
+    .setup-banner code {
+      color: var(--cyan);
+      background: rgba(0,200,255,.1);
+      padding: 1px 5px; border-radius: 3px;
+    }
+
+    /* ═══════════════════════════════════════════════════════ METRICS */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 1000px) { .metrics { grid-template-columns: repeat(3,1fr); } }
+    @media (max-width:  640px) { .metrics { grid-template-columns: repeat(2,1fr); } }
+
+    .m-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 14px 14px;
+      transition: border-color .25s;
+      position: relative; overflow: hidden;
+    }
+
+    .m-card::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: var(--border);
+      transition: background .3s;
+    }
+
+    .m-card.has-data::before    { background: var(--cyan); }
+    .m-card.has-alert::before   { background: var(--yellow); }
+
+    .m-card:hover { border-color: var(--border-hi); }
+
+    .m-label {
+      font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--text-dim); margin-bottom: 8px;
+    }
+
+    .m-value {
+      font-size: 26px; font-weight: 800; letter-spacing: -1px;
+      color: var(--text-dim);
+      transition: color .4s;
+    }
+
+    .m-value.c-green  { color: var(--green); }
+    .m-value.c-cyan   { color: var(--cyan); }
+    .m-value.c-yellow { color: var(--yellow); }
+    .m-value.c-amber  { color: var(--amber); }
+
+    .m-sub {
+      font-size: 11px; color: var(--text-dim); margin-top: 4px;
+    }
+
+    /* ═══════════════════════════════════════════════════════ CONTENT GRID */
+    .content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 900px) { .content { grid-template-columns: 1fr; } }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    /* ═══════════════════════════════════════════════════════ AGENTS */
+    .agents-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .a-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 13px 12px;
+      position: relative; overflow: hidden;
+      transition: border-color .25s;
+    }
+
+    .a-card::after {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0; width: 3px;
+      background: var(--border);
+      transition: background .3s;
+    }
+
+    .a-card.s-running { border-color: rgba(255,204,0,.3); }
+    .a-card.s-running::after { background: var(--yellow); box-shadow: 0 0 8px var(--yellow); }
+
+    .a-card.s-complete { border-color: rgba(0,232,120,.2); }
+    .a-card.s-complete::after { background: var(--green); }
+
+    .a-card.s-error { border-color: rgba(255,68,85,.3); }
+    .a-card.s-error::after { background: var(--red); }
+
+    .a-name {
+      font-size: 12px; font-weight: 700; color: var(--text);
+      margin-bottom: 7px; padding-left: 6px;
+    }
+
+    .a-status {
+      display: flex; align-items: center; gap: 6px;
+      margin-bottom: 7px; padding-left: 6px;
+    }
+
+    .s-dot {
+      width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+    }
+
+    .s-dot.idle     { background: var(--text-dim); }
+    .s-dot.running  { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); animation: blink 1.2s infinite; }
+    .s-dot.complete { background: var(--green); }
+    .s-dot.error    { background: var(--red); box-shadow: 0 0 6px var(--red); }
+
+    .s-label { font-size: 11px; font-weight: 600; }
+    .s-label.idle     { color: var(--text-dim); }
+    .s-label.running  { color: var(--yellow); }
+    .s-label.complete { color: var(--green); }
+    .s-label.error    { color: var(--red); }
+
+    .a-detail {
+      font-size: 11px; color: var(--text-dim);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      padding-left: 6px;
+    }
+
+    .a-time {
+      font-size: 10px; color: var(--border-hi);
+      margin-top: 5px; padding-left: 6px;
+    }
+
+    /* ═══════════════════════════════════════════════════════ ACTIVITY */
+    .feed {
+      height: 308px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-hi) transparent;
+    }
+
+    .feed::-webkit-scrollbar { width: 5px; }
+    .feed::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 3px; }
+
+    .feed-empty {
+      display: flex; align-items: center; justify-content: center;
+      height: 100%; color: var(--text-dim);
+      font-size: 11px; letter-spacing: 1px; text-align: center;
+      padding: 24px;
+    }
+
+    .feed-row {
+      display: grid;
+      grid-template-columns: 72px 105px 72px 1fr;
+      gap: 6px;
+      padding: 7px 4px;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px; align-items: center;
+      animation: fadeIn .25s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .f-time   { color: var(--text-dim); }
+    .f-agent  { color: var(--cyan); }
+
+    .f-badge {
+      display: inline-block;
+      font-size: 9px; letter-spacing: 1px; font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 5px; border-radius: 3px;
+    }
+
+    .f-badge.start    { background: rgba(255,204,0,.12); color: var(--yellow); }
+    .f-badge.complete { background: rgba(0,232,120,.12); color: var(--green); }
+    .f-badge.error    { background: rgba(255,68,85,.12);  color: var(--red); }
+    .f-badge.info     { background: rgba(0,200,255,.1);   color: var(--cyan); }
+
+    .f-detail { color: var(--text); }
+
+    /* ═══════════════════════════════════════════════════════ COMMANDS */
+    .cmds {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .cmds-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    @media (max-width: 900px) { .cmds-grid { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 640px) { .cmds-grid { grid-template-columns: 1fr; } }
+
+    .cmd {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      cursor: default;
+      transition: border-color .2s, background .2s;
+    }
+
+    .cmd:hover {
+      border-color: var(--cyan);
+      background: rgba(0,200,255,.04);
+    }
+
+    .cmd-icon { font-size: 18px; line-height: 1; }
+    .cmd-name { font-size: 11px; font-weight: 700; color: var(--cyan); }
+    .cmd-desc { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+
+    /* ═══════════════════════════════════════════════════════ FOOTER */
+    .footer {
+      text-align: center;
+      padding: 14px 24px;
+      border-top: 1px solid var(--border);
+      font-size: 10px; letter-spacing: 1.5px; color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    /* ═══════════════════════════════════════════════════════ RESEARCH PANEL */
+    .research-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .research-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    .research-table th {
+      text-align: left;
+      color: var(--text-dim);
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 0 8px 10px 4px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .research-table td {
+      padding: 9px 8px 9px 4px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .research-table tr:last-child td { border-bottom: none; }
+
+    .verdict-badge {
+      font-size: 9px; font-weight: 700; letter-spacing: 1px;
+      padding: 2px 6px; border-radius: 3px; text-transform: uppercase;
+    }
+
+    .verdict-badge.STRONG   { background: rgba(0,232,120,.15); color: var(--green); }
+    .verdict-badge.MODERATE { background: rgba(255,204,0,.12); color: var(--yellow); }
+    .verdict-badge.WEAK     { background: rgba(255,68,85,.12);  color: var(--red); }
+
+    .score-bar {
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .score-fill {
+      height: 5px; border-radius: 3px;
+      background: var(--cyan);
+      min-width: 2px;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- ── NAV ──────────────────────────────────────────────────────────────── -->
+<nav class="nav">
+  <span class="nav-brand">⚡ ETSY AI</span>
+  <span class="nav-sub">Command Center</span>
+  <span class="nav-sep"></span>
+  <div class="live-pill"><div class="live-dot"></div> Live</div>
+  <div class="nav-clock" id="clock">--:--:--</div>
+</nav>
+
+<!-- ── MAIN ─────────────────────────────────────────────────────────────── -->
+<div class="main">
+
+  <!-- Setup banner -->
+  <div class="setup-banner" id="setup-banner">
+    <span>⚠</span>
+    <div>
+      ETSY_API_KEY not configured — shop metrics unavailable.<br>
+      Copy <code>etsy-automation/.env.example</code> → <code>.env</code>, add your keys,
+      then run <code>python api/etsy_client.py --auth</code>
+    </div>
+  </div>
+
+  <!-- ── METRICS ─────────────────────────────── -->
+  <div class="sh">Shop Metrics · Last 30 Days</div>
+  <div class="metrics">
+    <div class="m-card" id="mc-gross">
+      <div class="m-label">Gross Revenue</div>
+      <div class="m-value" id="mv-gross">—</div>
+      <div class="m-sub" id="ms-gross">not connected</div>
+    </div>
+    <div class="m-card" id="mc-net">
+      <div class="m-label">Net Revenue</div>
+      <div class="m-value" id="mv-net">—</div>
+      <div class="m-sub" id="ms-margin">— margin</div>
+    </div>
+    <div class="m-card" id="mc-orders">
+      <div class="m-label">Orders</div>
+      <div class="m-value" id="mv-orders">—</div>
+      <div class="m-sub" id="ms-aov">avg —</div>
+    </div>
+    <div class="m-card" id="mc-listings">
+      <div class="m-label">Active Listings</div>
+      <div class="m-value" id="mv-listings">—</div>
+      <div class="m-sub">in your shop</div>
+    </div>
+    <div class="m-card" id="mc-msgs">
+      <div class="m-label">Unread Messages</div>
+      <div class="m-value" id="mv-msgs">—</div>
+      <div class="m-sub" id="ms-msgs">awaiting reply</div>
+    </div>
+  </div>
+
+  <!-- ── AGENTS + ACTIVITY ──────────────────── -->
+  <div class="content">
+
+    <!-- Agents -->
+    <div class="panel">
+      <div class="sh">Agents</div>
+      <div class="agents-grid" id="agents-grid">
+        <!-- JS-rendered -->
+      </div>
+    </div>
+
+    <!-- Activity feed -->
+    <div class="panel">
+      <div class="sh">Live Activity</div>
+      <div class="feed" id="feed">
+        <div class="feed-empty">No activity yet<br><br>Run <strong>/etsy-orchestrator</strong> in Claude Code to start</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── RESEARCH RESULTS (shown when data exists) ── -->
+  <div id="research-section" style="display:none">
+    <div class="sh">Latest Research Results</div>
+    <div class="research-panel">
+      <table class="research-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Niche</th>
+            <th>Type</th>
+            <th>Competition</th>
+            <th>Avg Price</th>
+            <th>Margin</th>
+            <th>Score</th>
+            <th>Verdict</th>
+          </tr>
+        </thead>
+        <tbody id="research-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── COMMANDS ───────────────────────────── -->
+  <div class="sh">Quick Commands</div>
+  <div class="cmds">
+    <div class="cmds-grid">
+      <div class="cmd">
+        <div class="cmd-icon">🔬</div>
+        <div>
+          <div class="cmd-name">/etsy-orchestrator research</div>
+          <div class="cmd-desc">Find winning product niches</div>
+        </div>
+      </div>
+      <div class="cmd">
+        <div class="cmd-icon">📝</div>
+        <div>
+          <div class="cmd-name">/etsy-orchestrator listing</div>
+          <div class="cmd-desc">Create new SEO-optimized listing</div>
+        </div>
+      </div>
+      <div class="cmd">
+        <div class="cmd-icon">💬</div>
+        <div>
+          <div class="cmd-name">/etsy-orchestrator cs</div>
+          <div class="cmd-desc">Draft replies to buyer messages</div>
+        </div>
+      </div>
+      <div class="cmd">
+        <div class="cmd-icon">📊</div>
+        <div>
+          <div class="cmd-name">/etsy-orchestrator analytics</div>
+          <div class="cmd-desc">Revenue + performance report</div>
+        </div>
+      </div>
+      <div class="cmd">
+        <div class="cmd-icon">⚡</div>
+        <div>
+          <div class="cmd-name">/etsy-orchestrator</div>
+          <div class="cmd-desc">Full menu — all four agents</div>
+        </div>
+      </div>
+      <div class="cmd">
+        <div class="cmd-icon">🖥</div>
+        <div>
+          <div class="cmd-name">python dashboard/server.py</div>
+          <div class="cmd-desc">Restart this command center</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<footer class="footer">
+  Etsy AI Command Center &nbsp;·&nbsp; Powered by Claude AI &nbsp;·&nbsp; Auto-refresh every 3s
+</footer>
+
+
+<!-- ── JAVASCRIPT ───────────────────────────────────────────────────────── -->
+<script>
+// ─── Constants ──────────────────────────────────────────────────────────────
+
+const AGENT_DEFS = [
+  { id: 'etsy-research-agent',         icon: '🔬', name: 'Research' },
+  { id: 'etsy-listing-agent',          icon: '📝', name: 'Listing' },
+  { id: 'etsy-customer-service-agent', icon: '💬', name: 'Customer Svc' },
+  { id: 'etsy-analytics-agent',        icon: '📊', name: 'Analytics' },
+];
+
+const seenKeys = new Set();
+let firstLoad = true;
+
+// ─── Clock ───────────────────────────────────────────────────────────────────
+
+setInterval(() => {
+  document.getElementById('clock').textContent =
+    new Date().toTimeString().slice(0, 8);
+}, 500);
+
+// ─── Status helpers ──────────────────────────────────────────────────────────
+
+function statusClass(raw) {
+  if (raw === 'start')    return 'running';
+  if (raw === 'complete') return 'complete';
+  if (raw === 'error')    return 'error';
+  return 'idle';
+}
+
+function statusLabel(raw) {
+  if (raw === 'start')    return 'Running';
+  if (raw === 'complete') return 'Done';
+  if (raw === 'error')    return 'Error';
+  return 'Idle';
+}
+
+// ─── Render agents ───────────────────────────────────────────────────────────
+
+function renderAgents(statuses) {
+  const grid = document.getElementById('agents-grid');
+  grid.innerHTML = AGENT_DEFS.map(def => {
+    const s   = statuses[def.id] || {};
+    const cls = statusClass(s.status);
+    const lbl = statusLabel(s.status);
+    const det = (s.detail || 'Never run').slice(0, 40);
+    const ago = s.ago || '—';
+    return `
+      <div class="a-card s-${cls}">
+        <div class="a-name">${def.icon} ${def.name}</div>
+        <div class="a-status">
+          <div class="s-dot ${cls}"></div>
+          <span class="s-label ${cls}">${lbl}</span>
+        </div>
+        <div class="a-detail" title="${s.detail || ''}">${det}</div>
+        <div class="a-time">${ago}</div>
+      </div>`;
+  }).join('');
+}
+
+// ─── Render activity ─────────────────────────────────────────────────────────
+
+function renderActivity(items) {
+  const feed = document.getElementById('feed');
+
+  if (!items || items.length === 0) {
+    if (firstLoad) {
+      feed.innerHTML = '<div class="feed-empty">No activity yet<br><br>Run <strong>/etsy-orchestrator</strong> in Claude Code to start</div>';
+    }
+    return;
+  }
+
+  // Find genuinely new items
+  const fresh = items.filter(it => {
+    const k = `${it.time}|${it.agent}|${it.event}|${it.detail}`;
+    return !seenKeys.has(k);
+  });
+  fresh.forEach(it => seenKeys.add(`${it.time}|${it.agent}|${it.event}|${it.detail}`));
+
+  if (firstLoad) {
+    feed.innerHTML = items.map(feedRow).join('');
+  } else if (fresh.length) {
+    // Remove empty placeholder
+    const placeholder = feed.querySelector('.feed-empty');
+    if (placeholder) placeholder.remove();
+    // Prepend new rows
+    feed.insertAdjacentHTML('afterbegin', fresh.map(feedRow).join(''));
+    // Trim excess
+    const rows = feed.querySelectorAll('.feed-row');
+    rows.forEach((r, i) => { if (i >= 35) r.remove(); });
+  }
+}
+
+function feedRow(it) {
+  const det = (it.detail || '').slice(0, 58);
+  return `
+    <div class="feed-row">
+      <span class="f-time">${it.time}</span>
+      <span class="f-agent">${it.agent}</span>
+      <span class="f-badge ${it.event}">${it.event}</span>
+      <span class="f-detail">${det}</span>
+    </div>`;
+}
+
+// ─── Render metrics ──────────────────────────────────────────────────────────
+
+function renderMetrics(m) {
+  const banner = document.getElementById('setup-banner');
+  if (!m) { banner.style.display = 'flex'; return; }
+  banner.style.display = 'none';
+  if (m.error) return;
+
+  const set = (id, val) => { document.getElementById(id).textContent = val; };
+  const cls = (id, c)   => { document.getElementById(id).className = `m-value ${c}`; };
+
+  set('mv-gross', `$${(m.gross_30d||0).toFixed(2)}`);
+  set('ms-gross', `30-day gross`);
+  cls('mv-gross', 'c-green');
+  document.getElementById('mc-gross').classList.add('has-data');
+
+  set('mv-net', `$${(m.net_30d||0).toFixed(2)}`);
+  set('ms-margin', `${m.margin_30d||0}% margin`);
+  cls('mv-net', 'c-green');
+
+  set('mv-orders', m.orders_30d||0);
+  set('ms-aov', `avg $${(m.avg_order_value||0).toFixed(2)}`);
+  cls('mv-orders', 'c-cyan');
+
+  set('mv-listings', m.active_listings||0);
+  cls('mv-listings', 'c-cyan');
+
+  const msgs = m.unread_messages || 0;
+  set('mv-msgs', msgs);
+  set('ms-msgs', msgs > 0 ? `${msgs} awaiting reply` : 'all clear');
+  cls('mv-msgs', msgs > 0 ? 'c-yellow' : '');
+  if (msgs > 0) document.getElementById('mc-msgs').classList.add('has-alert');
+}
+
+// ─── Render research results ─────────────────────────────────────────────────
+
+function renderResearch(results) {
+  if (!results || !results.length) return;
+  document.getElementById('research-section').style.display = 'block';
+  const tbody = document.getElementById('research-tbody');
+  tbody.innerHTML = results.map((r, i) => {
+    const scorePct = Math.min(100, r.score || r.opportunity_score || 0);
+    const verdict  = r.verdict || 'MODERATE';
+    return `
+      <tr>
+        <td style="color:var(--text-dim)">${i+1}</td>
+        <td style="font-weight:600">${r.niche}</td>
+        <td style="color:var(--text-dim)">${r.product_type}</td>
+        <td style="color:var(--text-dim)">${
+          r.competition?.listing_count != null
+            ? r.competition.listing_count.toLocaleString()
+            : r.competition || '—'
+        }</td>
+        <td>$${
+          r.competition?.avg_price_usd != null
+            ? r.competition.avg_price_usd.toFixed(2)
+            : (r.avg_price_usd || '—')
+        }</td>
+        <td style="color:var(--green)">${r.overall_margin_pct != null ? r.overall_margin_pct+'%' : (r.estimated_margin_pct != null ? r.estimated_margin_pct+'%' : '—')}</td>
+        <td>
+          <div class="score-bar">
+            <div class="score-fill" style="width:${scorePct}px;max-width:60px"></div>
+            <span style="color:var(--text-dim);font-size:10px">${scorePct.toFixed(0)}</span>
+          </div>
+        </td>
+        <td><span class="verdict-badge ${verdict}">${verdict}</span></td>
+      </tr>`;
+  }).join('');
+}
+
+// ─── Fetch & refresh ─────────────────────────────────────────────────────────
+
+async function refresh() {
+  try {
+    const res  = await fetch('/api/status');
+    if (!res.ok) return;
+    const data = await res.json();
+
+    renderMetrics(data.shop_metrics);
+    renderAgents(data.agent_statuses || {});
+    renderActivity(data.recent_activity || []);
+    if (data.research_results) renderResearch(data.research_results);
+
+    firstLoad = false;
+  } catch (_) {
+    // Network error — dashboard still shows last state
+  }
+}
+
+refresh();
+setInterval(refresh, 3000);
+</script>
+
+</body>
+</html>
