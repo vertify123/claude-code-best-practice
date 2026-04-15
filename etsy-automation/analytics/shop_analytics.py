@@ -142,8 +142,16 @@ def run(days: int = 30, as_json: bool = False) -> None:
 
 if __name__ == "__main__":
     import argparse
+    try:
+        from dashboard.agent_logger import log_event as _log
+    except ImportError:
+        def _log(*_): pass  # noqa: E731
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--days", type=int, default=30)
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
+
+    _log("etsy-analytics-agent", "start", f"Pulling {args.days}-day shop report")
     run(days=args.days, as_json=args.json)
+    _log("etsy-analytics-agent", "complete", f"{args.days}-day analytics report generated")
