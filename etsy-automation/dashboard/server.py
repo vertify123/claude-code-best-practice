@@ -63,10 +63,12 @@ async def status():
     ]
 
     shop_metrics = _fetch_shop_metrics()
+    research_results = _load_research_results()
 
     return JSONResponse({
         "server_time": datetime.now().strftime("%H:%M:%S"),
         "agent_statuses": agent_statuses,
+        "research_results": research_results,
         "recent_activity": recent_activity,
         "shop_metrics": shop_metrics,
     })
@@ -75,6 +77,20 @@ async def status():
 @app.get("/api/ping")
 async def ping():
     return {"ok": True}
+
+
+# ── Research results helper ──────────────────────────────────────────────────
+
+RESEARCH_FILE = Path(__file__).parent.parent / "research" / "latest_results.json"
+
+def _load_research_results() -> list | None:
+    """Load the most recent research run results (written by product_researcher)."""
+    if not RESEARCH_FILE.exists():
+        return None
+    try:
+        return json.loads(RESEARCH_FILE.read_text())
+    except Exception:
+        return None
 
 
 # ── Shop metrics helper ──────────────────────────────────────────────────────
