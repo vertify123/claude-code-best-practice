@@ -1,0 +1,272 @@
+[
+  {
+    "niche": "Nurse shift planner template",
+    "product_type": "digital",
+    "competition": {
+      "listing_count": 800,
+      "avg_price_usd": 10.0,
+      "min_price_usd": 5.0,
+      "max_price_usd": 20.0,
+      "avg_favorites": 250,
+      "high_demand_count": 40
+    },
+    "suggested_price_usd": 10.0,
+    "cogs_usd": 0.0,
+    "fees": {
+      "listing_fee": 0.2,
+      "transaction_fee": 0.65,
+      "payment_processing": 0.55,
+      "total_fees": 1.4,
+      "net_revenue": 8.6,
+      "margin_pct": 86.0
+    },
+    "net_profit_usd": 8.6,
+    "overall_margin_pct": 86.0,
+    "opportunity_score": 92.5,
+    "verdict": "STRONG",
+    "reasoning": "margin 86% | avg favorites 250 | 800 competing listings"
+  },
+  {
+    "niche": "PCOS meal plan template",
+    "product_type": "digital",
+    "competition": {
+      "listing_count": 1200,
+      "avg_price_usd": 11.5,
+      "min_price_usd": 5.75,
+      "max_price_usd": 23.0,
+      "avg_favorites": 120,
+      "high_demand_count": 60
+    },
+    "suggested_price_usd": 11.5,
+    "cogs_usd": 0.0,
+    "fees": {
+      "listing_fee": 0.2,
+      "transaction_fee": 0.75,
+      "payment_processing": 0.59,
+      "total_fees": 1.54,
+      "net_revenue": 9.96,
+      "margin_pct": 86.6
+    },
+    "net_profit_usd": 9.96,
+    "overall_margin_pct": 86.6,
+    "opportunity_score": 78.5,
+    "verdict": "STRONG",
+    "reasoning": "margin 87% | avg favorites 120 | 1,200 competing listings"
+  },
+  {
+    "niche": "Pet sitting contract template",
+    "product_type": "digital",
+    "competition": {
+      "listing_count": 900,
+      "avg_price_usd": 11.5,
+      "min_price_usd": 5.75,
+      "max_price_usd": 23.0,
+      "avg_favorites": 95,
+      "high_demand_count": 45
+    },
+    "suggested_price_usd": 11.5,
+    "cogs_usd": 0.0,
+    "fees": {
+      "listing_fee": 0.2,
+      "transaction_fee": 0.75,
+      "payment_processing": 0.59,
+      "total_fees": 1.54,
+      "net_revenue": 9.96,
+      "margin_pct": 86.6
+    },
+    "net_profit_usd": 9.96,
+    "overall_margin_pct": 86.6,
+    "opportunity_score": 74.1,
+    "verdict": "STRONG",
+    "reasoning": "margin 87% | avg favorites 95 | 900 competing listings"
+  },
+  {
+    "niche": "Dyslexia-friendly worksheet bundle",
+    "product_type": "digital",
+    "competition": {
+      "listing_count": 2500,
+      "avg_price_usd": 9.0,
+      "min_price_usd": 4.5,
+      "max_price_usd": 18.0,
+      "avg_favorites": 90,
+      "high_demand_count": 125
+    },
+    "suggested_price_usd": 9.0,
+    "cogs_usd": 0.0,
+    "fees": {
+      "listing_fee": 0.2,
+      "transaction_fee": 0.58,
+      "payment_processing": 0.52,
+      "total_fees": 1.3,
+      "net_revenue": 7.7,
+      "margin_pct": 85.5
+    },
+    "net_profit_usd": 7.7,
+    "overall_margin_pct": 85.6,
+    "opportunity_score": 73.2,
+    "verdict": "STRONG",
+    "reasoning": "margin 86% | avg favorites 90 | 2,500 competing listings"
+  },
+  {
+    "niche": "Therapist client intake form",
+    "product_type": "digital",
+    "competition": {
+      "listing_count": 600,
+      "avg_price_usd": 15.0,
+      "min_price_usd": 7.5,
+      "max_price_usd": 30.0,
+      "avg_favorites": 80,
+      "high_demand_count": 30
+    },
+    "suggested_price_usd": 15.0,
+    "cogs_usd": 0.0,
+    "fees": {
+      "listing_fee": 0.2,
+      "transaction_fee": 0.98,
+      "payment_processing": 0.7,
+      "total_fees": 1.88,
+      "net_revenue": 13.12,
+      "margin_pct": 87.5
+    },
+    "net_profit_usd": 13.12,
+    "overall_margin_pct": 87.5,
+    "opportunity_score": 71.5,
+    "verdict": "STRONG",
+    "reasoning": "margin 87% | avg favorites 80 | 600 competing listings"
+  },
+  {
+    "niche": "Wedding coordinator contract template",
+    "product_type": "digital",
+    "competition": {
+      "listing_count": 3000,
+      "avg_price_usd": 16.0,
+      "min_price_usd": 8.0,
+      "max_price_usd": 32.0,
+      "avg_favorites": 75,
+      "high_demand_count": 150
+    },
+    "suggested_price_usd": 16.0,
+    "cogs_usd": 0.0,
+    "fees": {
+      "listing_fee": 0.2,
+      "transaction_fee": 1.04,
+      "payment_processing": 0.73,
+      "total_fees": 1.97,
+      "net_revenue": 14.03,
+      "margin_pct": 87.7
+    },
+    "net_profit_usd": 14.03,
+    "overall_margin_pct": 87.7,
+    "opportunity_score": 70.6,
+    "verdict": "STRONG",
+    "reasoning": "margin 88% | avg favorites 75 | 3,000 competing listings"
+  },
+  {
+    "niche": "House cleaning business bundle",
+    "product_type": "digital",
+    "competition": {
+      "listing_count": 5000,
+      "avg_price_usd": 18.0,
+      "min_price_usd": 9.0,
+      "max_price_usd": 36.0,
+      "avg_favorites": 110,
+      "high_demand_count": 250
+    },
+    "suggested_price_usd": 18.0,
+    "cogs_usd": 0.0,
+    "fees": {
+      "listing_fee": 0.2,
+      "transaction_fee": 1.17,
+      "payment_processing": 0.79,
+      "total_fees": 2.16,
+      "net_revenue": 15.84,
+      "margin_pct": 88.0
+    },
+    "net_profit_usd": 15.84,
+    "overall_margin_pct": 88.0,
+    "opportunity_score": 70.5,
+    "verdict": "STRONG",
+    "reasoning": "margin 88% | avg favorites 110 | 5,000 competing listings"
+  },
+  {
+    "niche": "Real estate CMA template",
+    "product_type": "digital",
+    "competition": {
+      "listing_count": 1500,
+      "avg_price_usd": 14.0,
+      "min_price_usd": 7.0,
+      "max_price_usd": 28.0,
+      "avg_favorites": 60,
+      "high_demand_count": 75
+    },
+    "suggested_price_usd": 14.0,
+    "cogs_usd": 0.0,
+    "fees": {
+      "listing_fee": 0.2,
+      "transaction_fee": 0.91,
+      "payment_processing": 0.67,
+      "total_fees": 1.78,
+      "net_revenue": 12.22,
+      "margin_pct": 87.3
+    },
+    "net_profit_usd": 12.22,
+    "overall_margin_pct": 87.3,
+    "opportunity_score": 68.0,
+    "verdict": "MODERATE",
+    "reasoning": "margin 87% | avg favorites 60 | 1,500 competing listings"
+  },
+  {
+    "niche": "Real estate social media template bundle",
+    "product_type": "digital",
+    "competition": {
+      "listing_count": 4000,
+      "avg_price_usd": 17.0,
+      "min_price_usd": 8.5,
+      "max_price_usd": 34.0,
+      "avg_favorites": 55,
+      "high_demand_count": 200
+    },
+    "suggested_price_usd": 17.0,
+    "cogs_usd": 0.0,
+    "fees": {
+      "listing_fee": 0.2,
+      "transaction_fee": 1.1,
+      "payment_processing": 0.76,
+      "total_fees": 2.06,
+      "net_revenue": 14.94,
+      "margin_pct": 87.9
+    },
+    "net_profit_usd": 14.94,
+    "overall_margin_pct": 87.9,
+    "opportunity_score": 67.1,
+    "verdict": "MODERATE",
+    "reasoning": "margin 88% | avg favorites 55 | 4,000 competing listings"
+  },
+  {
+    "niche": "RV travel planner digital",
+    "product_type": "digital",
+    "competition": {
+      "listing_count": 2200,
+      "avg_price_usd": 14.0,
+      "min_price_usd": 7.0,
+      "max_price_usd": 28.0,
+      "avg_favorites": 40,
+      "high_demand_count": 110
+    },
+    "suggested_price_usd": 14.0,
+    "cogs_usd": 0.0,
+    "fees": {
+      "listing_fee": 0.2,
+      "transaction_fee": 0.91,
+      "payment_processing": 0.67,
+      "total_fees": 1.78,
+      "net_revenue": 12.22,
+      "margin_pct": 87.3
+    },
+    "net_profit_usd": 12.22,
+    "overall_margin_pct": 87.3,
+    "opportunity_score": 64.5,
+    "verdict": "MODERATE",
+    "reasoning": "margin 87% | avg favorites 40 | 2,200 competing listings"
+  }
+]
