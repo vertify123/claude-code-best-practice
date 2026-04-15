@@ -1,2 +1,7 @@
 plan/
 .vscode/
+__pycache__/
+*.pyc
+*.pyo
+etsy-automation/.env
+etsy-automation/dashboard/logs/*.jsonl
