@@ -144,6 +144,10 @@ def create_listing(
 
 if __name__ == "__main__":
     import argparse
+    try:
+        from dashboard.agent_logger import log_event as _log
+    except ImportError:
+        def _log(*_): pass  # noqa: E731
 
     parser = argparse.ArgumentParser(description="Create an Etsy listing")
     parser.add_argument("--product", required=True, help="Product name/description")
@@ -154,6 +158,7 @@ if __name__ == "__main__":
     parser.add_argument("--live", action="store_true", help="Actually post to Etsy")
     args = parser.parse_args()
 
+    _log("etsy-listing-agent", "start", f"Creating listing: {args.product}")
     result = create_listing(
         product=args.product,
         product_type=args.type,
@@ -161,4 +166,6 @@ if __name__ == "__main__":
         context=args.context,
         dry_run=not args.live,
     )
+    url = result.get("etsy_listing_url") or "dry-run"
+    _log("etsy-listing-agent", "complete", f"{args.product[:40]} — {url}")
     print(json.dumps(result, indent=2))
