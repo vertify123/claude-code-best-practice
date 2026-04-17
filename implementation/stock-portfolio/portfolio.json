@@ -1,0 +1,13 @@
+{
+  "holdings": {
+    "AAPL": {
+      "shares": 7.0,
+      "avg_cost": 182.5
+    },
+    "MSFT": {
+      "shares": 5.0,
+      "avg_cost": 415.0
+    }
+  },
+  "cash": 6670.0
+}
